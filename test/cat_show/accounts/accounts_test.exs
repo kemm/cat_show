@@ -6,11 +6,11 @@ defmodule CatShow.AccountsTest do
   describe "users" do
     alias CatShow.Accounts.User
 
-    @valid_attrs %{email: "some email", name: "some name", password_hash: "some password_hash", roles: ["admin", "user"]}
-    @update_attrs %{email: "some updated email", name: "some updated name", password_hash: "some updated password_hash", roles: ["secretary"]}
+    @valid_attrs %{email: "some@email", name: "some name", password_hash: "some password_hash", roles: ["admin", "user"]}
+    @update_attrs %{email: "some@updated email", name: "some updated name", password_hash: "some updated password_hash", roles: ["secretary"]}
     @invalid_attrs %{email: nil, name: nil, password_hash: nil, roles: nil}
-    @no_role %{email: "email", name: "name", password_hash: "pwd", roles: []}
-    @unknown_role %{email: "email", name: "name", password_hash: "pwd", roles: ["root", "admin"]}
+    @no_role %{email: "email@site", name: "name", password_hash: "pwd", roles: []}
+    @unknown_role %{email: "email@site", name: "name", password_hash: "pwd", roles: ["root", "admin"]}
 
     def user_fixture(attrs \\ %{}) do
       {:ok, user} =
@@ -33,7 +33,7 @@ defmodule CatShow.AccountsTest do
 
     test "create_user/1 with valid data creates a user" do
       assert {:ok, %User{} = user} = Accounts.create_user(@valid_attrs)
-      assert user.email == "some email"
+      assert user.email == "some@email"
       assert user.name == "some name"
       assert user.password_hash == "some password_hash"
       assert user.roles == ["admin", "user"]
@@ -55,7 +55,7 @@ defmodule CatShow.AccountsTest do
       user = user_fixture()
       assert {:ok, user} = Accounts.update_user(user, @update_attrs)
       assert %User{} = user
-      assert user.email == "some updated email"
+      assert user.email == "some@updated email"
       assert user.name == "some updated name"
       assert user.password_hash == "some updated password_hash"
       assert user.roles == ["secretary"]

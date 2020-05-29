@@ -6,6 +6,7 @@ defmodule CatShow.Accounts.User do
   schema "users" do
     field :email, :string
     field :name, :string
+    field :password, :string, virtual: true
     field :password_hash, :string
     field :roles, {:array, :string}
 
@@ -18,6 +19,9 @@ defmodule CatShow.Accounts.User do
     |> cast(attrs, [:name, :email, :password_hash, :roles])
     |> validate_required([:name, :email, :password_hash, :roles])
     |> unique_constraint(:email)
+    |> validate_length(:name, min: 2, max: 255)
+    |> validate_length(:email, min: 3, max: 255)
+    |> validate_format(:email, ~r/@/)
     |> validate_length(:roles, min: 1)
     |> validate_subset(:roles, ["admin", "secretary", "user"])
   end
