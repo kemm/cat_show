@@ -11,7 +11,6 @@ defmodule CatShow.AccountsTest do
     @invalid_attrs %{email: nil, name: nil, password_hash: nil, roles: nil}
     @no_role %{email: "email@site", name: "name", password_hash: "pwd", roles: []}
     @unknown_role %{email: "email@site", name: "name", password_hash: "pwd", roles: ["root", "admin"]}
-    @virtual_fields [:old_password, :password, :password2]
 
     def user_fixture(attrs \\ %{}) do
       {:ok, user} =
@@ -19,17 +18,17 @@ defmodule CatShow.AccountsTest do
         |> Enum.into(@valid_attrs)
         |> Accounts.create_user()
 
-      Map.drop(user, @virtual_fields)
+      user
     end
 
     test "list_users/0 returns all users" do
       user = user_fixture()
-      assert Enum.map(Accounts.list_users(), fn u -> Map.drop(u, @virtual_fields) end) == [user]
+      assert Accounts.list_users() == [user]
     end
 
     test "get_user!/1 returns the user with given id" do
       user = user_fixture()
-      assert Map.drop(Accounts.get_user!(user.id), @virtual_fields) == user
+      assert Accounts.get_user!(user.id) == user
     end
 
     test "create_user/1 with valid data creates a user" do
@@ -73,19 +72,19 @@ defmodule CatShow.AccountsTest do
     test "update_user/2 with invalid data returns error changeset" do
       user = user_fixture()
       assert {:error, %Ecto.Changeset{}} = Accounts.update_user(user, @invalid_attrs)
-      assert user == Map.drop(Accounts.get_user!(user.id), @virtual_fields)
+      assert user == Accounts.get_user!(user.id)
     end
 
     test "update_user/2 with no roles returns error changeset" do
       user = user_fixture()
       assert {:error, %Ecto.Changeset{}} = Accounts.update_user(user, @no_role)
-      assert user == Map.drop(Accounts.get_user!(user.id), @virtual_fields)
+      assert user == Accounts.get_user!(user.id)
     end
 
     test "update_user/2 with unknown roles returns error changeset" do
       user = user_fixture()
       assert {:error, %Ecto.Changeset{}} = Accounts.update_user(user, @unknown_role)
-      assert user == Map.drop(Accounts.get_user!(user.id), @virtual_fields)
+      assert user == Accounts.get_user!(user.id)
     end
 
     test "delete_user/1 deletes the user" do
@@ -97,6 +96,31 @@ defmodule CatShow.AccountsTest do
     test "change_user/1 returns a user changeset" do
       user = user_fixture()
       assert %Ecto.Changeset{} = Accounts.change_user(user)
+    end
+
+    test "change_password/2 with valid data updates user" do
+      user = user_fixture()
+      assert {:ok, updated} = Accounts.change_password(user, %{name: "new name", password: "new password", password2: "new password", old_password: "some password"})
+      assert updated.name == user.name
+      assert updated.password_hash != user.password_hash
+    end
+
+    test "change_password/2 with incorrect password returns error" do
+      user = user_fixture()
+      assert {:error, %Ecto.Changeset{}} = Accounts.change_password(user, %{password: "new password", password2: "new password", old_password: "wrong password"})
+      assert user == Accounts.get_user!(user.id)
+    end
+
+    test "change_password/2 with not matching new passwords returns error" do
+      user = user_fixture()
+      assert {:error, %Ecto.Changeset{}} = Accounts.change_password(user, %{password: "new password", password2: "other password", old_password: "some password"})
+      assert user == Accounts.get_user!(user.id)
+    end
+
+    test "change_password/2 with invalid new password returns error" do
+      user = user_fixture()
+      assert {:error, %Ecto.Changeset{}} = Accounts.change_password(user, %{password: "pwd", password2: "pwd", old_password: "some password"})
+      assert user == Accounts.get_user!(user.id)
     end
   end
 end

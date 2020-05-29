@@ -53,6 +53,7 @@ defmodule CatShow.Accounts do
     %User{}
     |> User.registration_changeset(attrs)
     |> Repo.insert()
+    |> filter_fields()
   end
 
   @doc """
@@ -71,15 +72,27 @@ defmodule CatShow.Accounts do
     user
     |> User.changeset(attrs)
     |> Repo.update()
+    |> filter_fields()
   end
 
   @doc """
   Change password for a user
 
   ## Examples
-      iex>
+      iex> change_password(user, %{password: "new password", password2: "new password", old_password: "oldpassword"})
+      {:ok, %User()}
+
+      iex> change_password(user, %{password: "new password", password2: "other password", old_password: "oldpassword"})
+      {:error, %Ecto.Changeset{}}
+
+      iex> change_password(user, %{password: "new password", password2: "new password", old_password: "invalid"})
+      {:error, %Ecto.Changeset{}}
   """
-  def change_password(%User{} = _user, _attrs) do
+  def change_password(%User{} = user, attrs) do
+    user
+    |> User.password_changeset(attrs) #%{password: pwd, password2: pwd2, old_password: old})
+    |> Repo.update()
+    |> filter_fields()
   end
 
   @doc """
@@ -109,5 +122,14 @@ defmodule CatShow.Accounts do
   """
   def change_user(%User{} = user) do
     User.changeset(user, %{})
+  end
+
+  defp filter_fields(result) do
+    case result do
+      {:ok, user} ->
+        {:ok, %User{user | password: nil, password2: nil, old_password: nil}}
+      _ ->
+        result
+    end
   end
 end
