@@ -6,11 +6,12 @@ defmodule CatShow.AccountsTest do
   describe "users" do
     alias CatShow.Accounts.User
 
-    @valid_attrs %{email: "some@email", name: "some name", password_hash: "some password_hash", roles: ["admin", "user"]}
-    @update_attrs %{email: "some@updated email", name: "some updated name", password_hash: "some updated password_hash", roles: ["secretary"]}
+    @valid_attrs %{email: "some@email", name: "some name", password: "some password", roles: ["admin", "user"]}
+    @update_attrs %{email: "some@updated email", name: "some updated name", password: "some updated password", roles: ["secretary"]}
     @invalid_attrs %{email: nil, name: nil, password_hash: nil, roles: nil}
     @no_role %{email: "email@site", name: "name", password_hash: "pwd", roles: []}
     @unknown_role %{email: "email@site", name: "name", password_hash: "pwd", roles: ["root", "admin"]}
+    @virtual_fields [:old_password, :password, :password2]
 
     def user_fixture(attrs \\ %{}) do
       {:ok, user} =
@@ -18,24 +19,32 @@ defmodule CatShow.AccountsTest do
         |> Enum.into(@valid_attrs)
         |> Accounts.create_user()
 
-      user
+      Map.drop(user, @virtual_fields)
     end
 
     test "list_users/0 returns all users" do
       user = user_fixture()
-      assert Accounts.list_users() == [user]
+      assert Enum.map(Accounts.list_users(), fn u -> Map.drop(u, @virtual_fields) end) == [user]
     end
 
     test "get_user!/1 returns the user with given id" do
       user = user_fixture()
-      assert Accounts.get_user!(user.id) == user
+      assert Map.drop(Accounts.get_user!(user.id), @virtual_fields) == user
     end
 
     test "create_user/1 with valid data creates a user" do
       assert {:ok, %User{} = user} = Accounts.create_user(@valid_attrs)
       assert user.email == "some@email"
       assert user.name == "some name"
-      assert user.password_hash == "some password_hash"
+      assert Argon2.check_pass(user, "some password")
+      assert user.roles == ["admin", "user"]
+    end
+
+    test "create_user/1 with valid dat creates a user" do
+      assert {:ok, %User{} = user} = Accounts.create_user(@valid_attrs)
+      assert user.email == "some@email"
+      assert user.name == "some name"
+      assert Argon2.check_pass(user, "some password")
       assert user.roles == ["admin", "user"]
     end
 
@@ -57,26 +66,26 @@ defmodule CatShow.AccountsTest do
       assert %User{} = user
       assert user.email == "some@updated email"
       assert user.name == "some updated name"
-      assert user.password_hash == "some updated password_hash"
+      assert Argon2.check_pass(user, "some password")
       assert user.roles == ["secretary"]
     end
 
     test "update_user/2 with invalid data returns error changeset" do
       user = user_fixture()
       assert {:error, %Ecto.Changeset{}} = Accounts.update_user(user, @invalid_attrs)
-      assert user == Accounts.get_user!(user.id)
+      assert user == Map.drop(Accounts.get_user!(user.id), @virtual_fields)
     end
 
     test "update_user/2 with no roles returns error changeset" do
       user = user_fixture()
       assert {:error, %Ecto.Changeset{}} = Accounts.update_user(user, @no_role)
-      assert user == Accounts.get_user!(user.id)
+      assert user == Map.drop(Accounts.get_user!(user.id), @virtual_fields)
     end
 
     test "update_user/2 with unknown roles returns error changeset" do
       user = user_fixture()
       assert {:error, %Ecto.Changeset{}} = Accounts.update_user(user, @unknown_role)
-      assert user == Accounts.get_user!(user.id)
+      assert user == Map.drop(Accounts.get_user!(user.id), @virtual_fields)
     end
 
     test "delete_user/1 deletes the user" do

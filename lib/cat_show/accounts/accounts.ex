@@ -51,7 +51,7 @@ defmodule CatShow.Accounts do
   """
   def create_user(attrs \\ %{}) do
     %User{}
-    |> User.changeset(attrs)
+    |> User.registration_changeset(attrs)
     |> Repo.insert()
   end
 
@@ -71,6 +71,15 @@ defmodule CatShow.Accounts do
     user
     |> User.changeset(attrs)
     |> Repo.update()
+  end
+
+  @doc """
+  Change password for a user
+
+  ## Examples
+      iex>
+  """
+  def change_password(%User{} = _user, _attrs) do
   end
 
   @doc """
