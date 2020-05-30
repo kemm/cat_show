@@ -122,5 +122,20 @@ defmodule CatShow.AccountsTest do
       assert {:error, %Ecto.Changeset{}} = Accounts.change_password(user, %{password: "pwd", password2: "pwd", old_password: "some password"})
       assert user == Accounts.get_user!(user.id)
     end
+
+    test "authenticate/2 with correct email and password returns user" do
+      user = user_fixture()
+      assert {:ok, user} == Accounts.authenticate(user.email, "some password")
+    end
+
+    test "authenticate/2 with unknown email returns error" do
+      user = user_fixture()
+      assert {:error, :invalid_credentials} == Accounts.authenticate(user.email <> "foo", "some password")
+    end
+
+    test "authenticate/2 with correct email and incorrect password returns error" do
+      user = user_fixture()
+      assert {:error, :invalid_credentials} == Accounts.authenticate(user.email, "some another password")
+    end
   end
 end

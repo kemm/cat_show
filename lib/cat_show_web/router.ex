@@ -1,26 +1,25 @@
 defmodule CatShowWeb.Router do
   use CatShowWeb, :router
 
-  pipeline :browser do
-    plug :accepts, ["html"]
-    plug :fetch_session
-    plug :fetch_flash
-    plug :protect_from_forgery
-    plug :put_secure_browser_headers
-  end
-
   pipeline :api do
     plug :accepts, ["json"]
   end
 
-  scope "/", CatShowWeb do
-    pipe_through :browser # Use the default browser stack
-
-    get "/", PageController, :index
+  pipeline :api_auth do
+    plug(CatShow.Auth.Pipeline)
   end
 
-  # Other scopes may use custom stacks.
-  # scope "/api", CatShowWeb do
-  #   pipe_through :api
-  # end
+  scope "/api", CatShowWeb do
+    pipe_through :api
+
+    post("/sessions", SessionController, :create)
+    post("/users", UserController, :create)
+  end
+
+  scope "/api", CatShowWeb do
+    pipe_through [:api, :api_auth]
+
+    delete("/sessions", SessionController, :delete)
+    post("/sessions/refresh", SessionController, :refresh)
+  end
 end

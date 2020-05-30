@@ -42,7 +42,8 @@ defmodule CatShow.Mixfile do
       {:gettext, "~> 0.11"},
       {:cowboy, "~> 1.0"},
       {:elmer, "~> 0.0.14", only: :dev},
-      {:argon2_elixir, "~> 2.3"}
+      {:argon2_elixir, "~> 2.3"},
+      {:guardian, "~> 2.1"}
     ]
   end
 

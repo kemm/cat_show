@@ -124,10 +124,45 @@ defmodule CatShow.Accounts do
     User.changeset(user, %{})
   end
 
+  @doc """
+  Authenticate user with given email and (plaintext) password
+
+  ## Examples
+      iex> authenticate("user@domain", "password")
+      {:ok, %User{}}
+
+      iex> authenticate("unknown@domain", "password")
+      {:error, :invalid_credentials}
+
+      iex> authenticate("user@domain", "invalid_passwd")
+      {:error, :invalid_credentials}
+
+  """
+  @spec authenticate(String.t(), String.t()) :: {:ok, %User{}} | {:error, :invalid_credentials}
+  def authenticate(email, password) do
+    query = from u in User, where: u.email == ^email
+    case Repo.one(query) do
+      nil ->
+        Argon2.no_user_verify()
+        {:error, :invalid_credentials}
+
+      user ->
+        if Argon2.verify_pass(password, user.password_hash) do
+          {:ok, user}
+        else
+          {:error, :invalid_credentials}
+        end
+    end
+  end
+
+  defp filter_fields(%User{} = user) do
+    %User{user | password: nil, password2: nil, old_password: nil}
+  end
+
   defp filter_fields(result) do
     case result do
-      {:ok, user} ->
-        {:ok, %User{user | password: nil, password2: nil, old_password: nil}}
+      {:ok, %User{} = user} ->
+        {:ok, filter_fields(user)}
       _ ->
         result
     end

@@ -17,6 +17,11 @@ config :cat_show, CatShowWeb.Endpoint,
   pubsub: [name: CatShow.PubSub,
            adapter: Phoenix.PubSub.PG2]
 
+
+config :cat_show, CatShow.Auth.Guardian,
+  issuer: "cat_show",
+  secret_key: "#{Mix.env}"
+
 # Configures Elixir's Logger
 config :logger, :console,
   format: "$time $metadata[$level] $message\n",
