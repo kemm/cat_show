@@ -19,3 +19,21 @@ import "phoenix_html"
 // paths "./socket" or full ones "web/static/js/socket".
 
 // import socket from "./socket"
+
+import "./main"
+//Elm.Main.init({ flags: "" });
+var elm_app = Elm.Main.init(localStorage.session || null);
+
+elm_app.ports.storeSession.subscribe(function(session) {
+    localStorage.session = session;
+});
+
+window.addEventListener(
+    "storage",
+    function(event) {
+        if (event.storageArea === localStorage && event.key === "session") {
+            elm_app.ports.onSessionChange.send(event.newValue);
+        }
+    },
+    false
+);

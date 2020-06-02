@@ -26,3 +26,8 @@ npm-debug.log
 # secrets files as long as you replace their contents by environment
 # variables.
 /config/*.secret.exs
+
+# Elm data
+/assets/js/main.js
+/assets/js/main.orig.js
+/elm/elm-stuff/
